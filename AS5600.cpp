@@ -64,7 +64,7 @@ esp_err_t AS5600_i2c::write_registr(AS5600_REG reg, uint8_t *value, uint8_t len)
   i2c_master_write_byte(cmd, I2C_AS5600_ADDRESS << 1 | I2C_MASTER_WRITE, false);
   i2c_master_write_byte(cmd, (uint8_t)reg, false);
 
-  i2c_master_write(cmd, value, len, false);
+  i2c_master_write(cmd, value, len, true);
 
   i2c_master_stop(cmd);
   esp_err_t ret = i2c_master_cmd_begin(i2c_num, cmd, 1000 / portTICK_PERIOD_MS);
@@ -123,9 +123,17 @@ esp_err_t AS5600_i2c::write_MANG(uint16_t zpos)
   return write_registr(AS5600_REG_MANG, zpos);
 }
 
-esp_err_t AS5600_i2c::read_CONF(AS5600_CONF &conf)
+AS5600_CONF AS5600_i2c::read_CONF(esp_err_t &err)
 {
-  return read_registr(AS5600_REG_CONF, *(uint16_t *)&conf);
+  uint16_t ret;
+  err = read_registr(AS5600_REG_CONF, ret);
+  return (AS5600_CONF)ret;
+}
+
+AS5600_CONF AS5600_i2c::read_CONF()
+{
+  esp_err_t ret;
+  return read_CONF(ret);
 }
 
 esp_err_t AS5600_i2c::write_CONF(AS5600_CONF conf)
@@ -165,6 +173,119 @@ esp_err_t AS5600_i2c::Burn_Angle()
 
 esp_err_t AS5600_i2c::Burn_Setting()
 {
+  return write_registr(AS5600_REG_BURN, (uint8_t)0x40);
 }
 
 const char *CONF_PM_String(AS5600_CONF_PM pm)
+{
+  switch (pm)
+  {
+  case PM_NOM:
+    return "NOM";
+  case PM_LPM1:
+    return "LPM1";
+  case PM_LPM2:
+    return "LPM2";
+  case PM_LPM3:
+    return "LPM3";
+  default:
+    return "Unknown";
+  }
+  return nullptr;
+}
+
+const char *CONF_HYST_String(AS5600_CONF_HYST hyst)
+{
+  switch (hyst)
+  {
+  case HYST_OFF:
+    return "OFF";
+  case HYST_1LSB:
+    return "1LSB";
+  case HYST_2LSB:
+    return "2LSB";
+  case HYST_3LSB:
+    return "3LSB";
+  default:
+    return "Unknown";
+  }
+  return nullptr;
+}
+
+const char *CONF_OUTS_String(AS5600_CONF_OUTS outs)
+{
+  switch (outs)
+  {
+  case OUTS_ANALOG_FULL:
+    return "ANALOG_FULL";
+  case OUTS_ANALOG:
+    return "ANALOG";
+  case OUTS_PWM:
+    return "PWM";
+  default:
+    return "Unknown";
+  }
+  return nullptr;
+}
+
+const char *CONF_PWMF_String(AS5600_CONF_PWMF pwmf)
+{
+  switch (pwmf)
+  {
+  case PWMF_115:
+    return "115 Hz";
+  case PWMF_230:
+    return "230 Hz";
+  case PWMF_460:
+    return "460 Hz";
+  case PWMF_920:
+    return "920 Hz";
+  default:
+    return "Unknown";
+  }
+  return nullptr;
+}
+
+const char *CONF_SF_String(AS5600_CONF_SF sf)
+{
+  switch (sf)
+  {
+  case SF_16:
+    return "16x";
+  case SF_8:
+    return "8x";
+  case SF_4:
+    return "4x";
+  case SF_2:
+    return "2x";
+  default:
+    return "Unknown";
+  }
+  return nullptr;
+}
+
+const char *CONF_FTH_String(AS5600_CONF_FTH fth)
+{
+  switch (fth)
+  {
+  case FTH_0:
+    return "Slow filter only";
+  case FTH_6:
+    return "6";
+  case FTH_7:
+    return "7";
+  case FTH_9:
+    return "9";
+  case FTH_18:
+    return "18";
+  case FTH_21:
+    return "21";
+  case FTH_24:
+    return "24";
+  case FTH_10:
+    return "10";
+  default:
+    return "Unknown";
+  }
+  return nullptr;
+}

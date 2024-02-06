@@ -6,9 +6,6 @@
 // https://ams.com/documents/20143/36005/AS5600_DS000365_5-00.pdfs
 // https://pdf1.alldatasheet.com/pdfjsview/web/viewer.html?file=//pdf1.alldatasheet.com/datasheet-pdf/view/1452014/OSRAM/AS5600/+0_W_2_JXMSSwOd.XCDNY+/datasheet.pdf
 
-#define ACK_CHECK_EN 0x1        /*!< I2C master will check ack from slave */
-#define ACK_CHECK_DIS 0x0       /*!< I2C master will not check ack from slave */
-                                /* */
 #define I2C_SPEED_HZ 100000     /* I2C speed is 100 kHz */
 #define I2C_AS5600_ADDRESS 0x36 /* the default AS5600 address */
 
@@ -151,6 +148,8 @@ typedef enum : uint8_t
   PM_LPM3 = 0b11
 } AS5600_CONF_PM;
 
+const char *CONF_PM_String(AS5600_CONF_PM pm);
+
 /// @brief To avoid any toggling of the output when the magnet is not moving, a 1 to 3 LSB hysteresis of the 12-bit resolution can be enabled with the HYST bits in the CONF register.
 typedef enum : uint8_t
 {
@@ -159,6 +158,8 @@ typedef enum : uint8_t
   HYST_2LSB = 0b10,
   HYST_3LSB = 0b11
 } AS5600_CONF_HYST;
+
+const char *CONF_HYST_String(AS5600_CONF_HYST hyst);
 
 /// @brief The OUTS bits in the CONF register are used to choose between an analog ratiometric output (default) and a digital PWM output. If PWM is selected, the DAC is powered down.
 /// Without regard to which output is enabled, an external unit can read the angle from the ANGLE register through I²C interface at any time.
@@ -175,6 +176,8 @@ typedef enum : uint8_t
 
 } AS5600_CONF_OUTS;
 
+const char *CONF_OUTS_String(AS5600_CONF_OUTS outs);
+
 typedef enum : uint8_t
 {
   /// @brief 115 Hz
@@ -190,6 +193,8 @@ typedef enum : uint8_t
   PWMF_920 = 0b11
 
 } AS5600_CONF_PWMF;
+
+const char *CONF_PWMF_String(AS5600_CONF_PWMF pwmf);
 
 /// @brief The AS5600 has a digital post-processing programmable filter which can be set in fast or slow modes. The fast filter mode can be enabled by setting a fast filter threshold in the FTH bits of the CONF register.
 typedef enum : uint8_t
@@ -208,6 +213,8 @@ typedef enum : uint8_t
 
 } AS5600_CONF_SF;
 
+const char *CONF_SF_String(AS5600_CONF_SF sf);
+
 typedef enum : uint8_t
 {
   /// @brief slow filter only
@@ -223,6 +230,8 @@ typedef enum : uint8_t
 
 } AS5600_CONF_FTH;
 
+const char *CONF_FTH_String(AS5600_CONF_FTH fth);
+
 struct AS5600_CONF
 {
   AS5600_CONF(uint16_t conf)
@@ -235,9 +244,19 @@ struct AS5600_CONF
     return (AS5600_CONF_PM)(_conf & PM_LPM3);
   }
 
+  void SetPowerMode(AS5600_CONF_PM pm)
+  {
+    _conf = (_conf & ~PM_LPM3) | (pm & PM_LPM3);
+  }
+
   AS5600_CONF_HYST Hysteresis()
   {
     return (AS5600_CONF_HYST)((_conf >> 2) & HYST_3LSB);
+  }
+
+  void SetHysteresis(AS5600_CONF_HYST hyst)
+  {
+    _conf = (_conf & ~(HYST_3LSB << 2)) | ((hyst & HYST_3LSB) << 2);
   }
 
   AS5600_CONF_OUTS OutputStage()
@@ -245,9 +264,19 @@ struct AS5600_CONF
     return (AS5600_CONF_OUTS)((_conf >> 4) & 0b11);
   }
 
+  void SetOutputStage(AS5600_CONF_OUTS outs)
+  {
+    _conf = (_conf & ~(0b11 << 4)) | ((outs & 0b11) << 4);
+  }
+
   AS5600_CONF_PWMF PWMFrequency()
   {
     return (AS5600_CONF_PWMF)((_conf >> 6) & PWMF_920);
+  }
+
+  void SetPWMFrequency(AS5600_CONF_PWMF pwmf)
+  {
+    _conf = (_conf & ~(PWMF_920 << 6)) | ((pwmf & PWMF_920) << 6);
   }
 
   AS5600_CONF_SF SlowFilter()
@@ -255,9 +284,19 @@ struct AS5600_CONF
     return (AS5600_CONF_SF)((_conf >> 8) & SF_2);
   }
 
+  void SetSlowFilter(AS5600_CONF_SF sf)
+  {
+    _conf = (_conf & ~(SF_2 << 8)) | ((sf & SF_2) << 8);
+  }
+
   AS5600_CONF_FTH FastFilterThreshold()
   {
     return (AS5600_CONF_FTH)((_conf >> 10) & FTH_10);
+  }
+
+  void SetFastFilterThreshold(AS5600_CONF_FTH fth)
+  {
+    _conf = (_conf & ~(FTH_10 << 10)) | ((fth & FTH_10) << 10);
   }
 
 private:
@@ -298,7 +337,9 @@ public:
 
   esp_err_t write_MANG(uint16_t mang);
 
-  esp_err_t read_CONF(AS5600_CONF &conf);
+  AS5600_CONF read_CONF(esp_err_t &err);
+
+  AS5600_CONF read_CONF();
 
   esp_err_t write_CONF(AS5600_CONF conf);
 
