@@ -111,19 +111,19 @@ struct AS5600_STATUS
   /// @brief AGC minimum gain overflow, magnet too strong
   bool MagnetStrong()
   {
-    return _status & 0x20;
+    return _status & 0b1000;
   }
 
   /// @brief AGC maximum gain overflow, magnet too weak
   bool MagnetWeak()
   {
-    return _status & 0x10;
+    return _status & 0b10000;
   }
 
   /// @brief Magnet was detected
   bool MagnetDetected()
   {
-    return _status & 0x8;
+    return _status & 0b100000;
   }
 
   operator uint8_t() const
@@ -211,28 +211,15 @@ typedef enum : uint8_t
 typedef enum : uint8_t
 {
   /// @brief slow filter only
-  PWMF_0 = 0b000,
+  FTH_0 = 0b000,
 
-  /// @brief 6LSBs
-  PWMF_6 = 0b001,
-
-  /// @brief 7LSBs
-  PWMF_7 = 0b010,
-
-  /// @brief 9LSBs
-  FTH_9 = 0b011
-
-  /// @brief 18LSBs
-  FTH_18 = 0b100
-
-  /// @brief 21LSBs
-  FTH_21 = 0b101
-
-  /// @brief 24LSBs
-  FTH_24 = 0b110
-
-  /// @brief 10LSBs
-  FTH_10 = 0b111
+  FTH_6 = 0b001,
+  FTH_7 = 0b010,
+  FTH_9 = 0b011,
+  FTH_18 = 0b100,
+  FTH_21 = 0b101,
+  FTH_24 = 0b110,
+  FTH_10 = 0b111,
 
 } AS5600_CONF_FTH;
 

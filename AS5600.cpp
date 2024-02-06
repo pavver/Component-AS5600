@@ -31,7 +31,7 @@ esp_err_t AS5600_i2c::read_registr(AS5600_REG reg, uint8_t *value, uint8_t len)
   i2c_master_write_byte(cmd, I2C_AS5600_ADDRESS << 1 | I2C_MASTER_READ, false);
   if (len > 1)
   {
-    i2c_master_read(cmd, value, len - 1, I2C_MASTER_ACK);
+    i2c_master_read(cmd, value, len, I2C_MASTER_LAST_NACK);
   }
   else
   {
@@ -128,7 +128,7 @@ esp_err_t AS5600_i2c::read_CONF(AS5600_CONF &conf)
   return read_registr(AS5600_REG_CONF, *(uint16_t *)&conf);
 }
 
-esp_err_t AS5600_i2c::write_CONF(AS5600_CONF &conf)
+esp_err_t AS5600_i2c::write_CONF(AS5600_CONF conf)
 {
   return write_registr(AS5600_REG_CONF, *(uint16_t *)&conf);
 }
@@ -160,10 +160,11 @@ esp_err_t AS5600_i2c::read_MAGNITUDE(uint16_t &magnitude)
 
 esp_err_t AS5600_i2c::Burn_Angle()
 {
-  return write_registr(AS5600_REG_BURN, 0x80);
+  return write_registr(AS5600_REG_BURN, (uint8_t)0x80);
 }
 
 esp_err_t AS5600_i2c::Burn_Setting()
 {
-  return write_registr(AS5600_REG_BURN, 0x40);
 }
+
+const char *CONF_PM_String(AS5600_CONF_PM pm)
